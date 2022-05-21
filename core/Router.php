@@ -1,13 +1,35 @@
 <?php 
 
+namespace App\Core;
+
+
 class Router {
     
-    function define($routes) {
-        $this->routes  = $routes;
+
+    protected $routes = [
+
+        'GET' => [],
+        'POST' => []
+
+
+    ];
+
+    public function get($uri, $controller) {
+        $this->routes['GET'][$uri] = $controller;
     }
-    function direct($uri) {
-        if (array_key_exists($uri, $this->routes)) {
-            return $this->routes[$uri];
+
+    public function post($uri, $controller) {
+        $this->routes['POST'][$uri] = $controller;
+    }
+
+    function direct($uri, $requestType) {
+        if (array_key_exists($uri, $this->routes[$requestType])) {
+
+            
+            return $this->callAction(
+                ...explode('@', $this->routes[$requestType][$uri])
+            );
+            
         }
 
         throw new Exception('No Routes Defined For This URI.');
@@ -18,6 +40,23 @@ class Router {
         require $file;
 
         return $router;
+    }
+
+    protected function callAction($controller, $action) {
+
+        $controller = "App\\Controllers\\{$controller}";
+
+        $controller = new $controller;
+
+        if ( ! method_exists($controller, $action)) {
+            throw new Exception (
+                "{$controller} does not respond to the {$action} action."
+            );
+        }
+        
+        return $controller->$action();
+
+        
     }
     
 }

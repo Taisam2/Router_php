@@ -1,16 +1,30 @@
 <?php 
 
-$app = [];
 
-$app['config'] = require 'config.php';
+use App\Core\App;
 
-require 'core/Router.php';
+App::bind('config', require 'config.php');
 
-require 'core/database/Connection.php';
-require 'core/database/QueryBuilder.php';
-
-$app['database'] = new QueryBuilder(
+App::bind('database',   new QueryBuilder(
     
-    Connection::make($app['config']['database'])
+    Connection::make(App::get('config')['database'])
 
-);
+));
+
+
+function view($name, $data = []) {
+
+    extract($data);
+
+    /* 
+        compact('names') --> assign key to value ['names' => $names] 
+        extract($date) --> does opposite $names = 'Mathias'
+    */
+
+    return require "app/views/{$name}.view.php";
+
+}
+
+function redirect($path) {
+    header("Location: /{$path}");
+}
